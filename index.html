@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Chloé Petridis</title>
+<meta name="description" content="Chloé Petridis — AI engineer: NLP, LLMs and agents.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,300..800&family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400;1,6..72,500&family=JetBrains+Mono:wght@400;500&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+/* Layout: tokenised name over a 3D embedding cloud (Three.js) as the hero, then one long editorial column of oversized project rows, a timeline and a contact band. */
+:root{
+  --paper:#EEEDF3; --ink:#15131F; --muted:#5E5A72; --line:rgba(21,19,31,.16);
+  --klein:#2323E0; --on-klein:#F4F3FF;
+  --f-display:"Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
+  --f-serif:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-mono:"JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --paper:#0E0D16; --ink:#ECEAF6; --muted:#A09CB6; --line:rgba(236,234,246,.16);
+  --klein:#6D6DFF; --on-klein:#0B0A14; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --paper:#0E0D16; --ink:#ECEAF6; --muted:#A09CB6; --line:rgba(236,234,246,.16);
+  --klein:#6D6DFF; --on-klein:#0B0A14; color-scheme:dark }
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-serif);font-size:18px;line-height:1.55;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));overflow-x:hidden}
+::selection{background:var(--klein);color:var(--on-klein)}
+a{color:inherit}
+.wrap{max-width:1360px;margin:0 auto}
+.mono{font-family:var(--f-mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase}
+:focus-visible{outline:2px solid var(--klein);outline-offset:3px}
+
+/* nav */
+nav{position:relative;z-index:3;display:flex;justify-content:space-between;align-items:center;gap:16px;padding-block:22px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+nav .links{display:flex;gap:22px;flex-wrap:wrap;align-items:center}
+nav a{text-decoration:none}
+nav a:hover{color:var(--klein)}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--klein);margin-right:8px;animation:pulse 2.4s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.3}}
+.lang{display:inline-flex;border:1px solid var(--ink);border-radius:999px;padding:2px}
+.lang button{font:inherit;background:none;border:0;color:var(--ink);padding:5px 11px;border-radius:999px;cursor:pointer}
+.lang button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+
+/* hero */
+.hero{position:relative;padding-block:clamp(48px,9vw,120px) clamp(32px,6vw,72px)}
+#space{position:absolute;top:0;bottom:0;right:calc(-1 * max(16px, env(safe-area-inset-right,0px)));width:min(70%,900px);z-index:0;pointer-events:none}
+#space canvas{display:block;width:100%!important;height:100%!important}
+.hero > *:not(#space){position:relative;z-index:1}
+.hero .eyebrow{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;color:var(--muted);margin-bottom:28px}
+.tokens{position:relative;display:flex;flex-wrap:wrap;align-items:flex-start;row-gap:6px;font-family:var(--f-display);
+  font-weight:700;font-variation-settings:"wdth" 78;font-size:clamp(64px,15.5vw,236px);line-height:.86;letter-spacing:-.035em}
+.tok{position:relative;display:inline-flex;flex-direction:column;cursor:default;padding:0 .02em;
+  animation:drop .9s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i) * 90ms + 150ms)}
+.tok b{font-weight:inherit;transition:color .25s}
+.tok .id{font-family:var(--f-mono);font-weight:400;font-size:12px;letter-spacing:.04em;color:var(--muted);
+  border-top:1px solid var(--line);margin-top:6px;padding-top:4px;transition:color .25s,border-color .25s}
+.tok:nth-child(even) b{color:transparent;-webkit-text-stroke:1.5px var(--ink)}
+.tok.on b{color:var(--klein);-webkit-text-stroke:0}
+.tok.on .id,.tok.near .id{color:var(--klein);border-color:var(--klein)}
+@keyframes drop{from{transform:translateY(.25em) rotate(4deg);opacity:0;filter:blur(6px)}}
+#arcs{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+#arcs path{fill:none;stroke:var(--klein);stroke-linecap:round}
+.hint{margin-top:22px;color:var(--muted)}
+.hero-foot{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:32px;margin-top:clamp(36px,6vw,72px);align-items:end}
+.lede{font-size:clamp(22px,2.6vw,34px);line-height:1.22;max-width:24ch;text-wrap:balance;margin:0}
+.lede em{color:var(--klein)}
+.facts{display:grid;gap:10px;justify-self:end;width:100%;max-width:420px;background:color-mix(in srgb,var(--paper) 78%,transparent);padding:10px 0}
+.facts div{display:flex;justify-content:space-between;gap:16px;border-bottom:1px solid var(--line);padding-bottom:8px}
+.facts span:last-child{font-family:var(--f-mono);font-size:13px;text-align:right}
+.legend{position:absolute;right:0;bottom:clamp(170px,22vw,240px);color:var(--muted);text-align:right;display:grid;gap:4px}
+.legend span::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--klein);margin-right:8px;vertical-align:middle}
+
+/* marquee */
+.marquee{border-block:1px solid var(--line);overflow:hidden;padding-block:16px;margin-inline:calc(-1 * max(16px, env(safe-area-inset-left,0px)))}
+.marquee .track{display:flex;width:max-content;animation:slide 38s linear infinite}
+.marquee span{font-family:var(--f-display);font-weight:500;font-variation-settings:"wdth" 90;font-size:clamp(22px,3vw,40px);padding-inline:22px;white-space:nowrap}
+.marquee span::after{content:"✳";color:var(--klein);margin-left:44px;font-size:.6em;vertical-align:middle}
+@keyframes slide{to{transform:translateX(-50%)}}
+
+/* section heads */
+section{padding-block:clamp(64px,10vw,140px) 0}
+.sh{display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap;margin-bottom:28px}
+.sh h2{font-family:var(--f-display);font-weight:700;font-variation-settings:"wdth" 78;font-size:clamp(44px,8vw,112px);line-height:.9;letter-spacing:-.03em;margin:0}
+.sh h2 i{font-family:var(--f-serif);font-weight:400;font-style:italic;letter-spacing:-.01em}
+.sh p{color:var(--muted);margin:0}
+
+/* projects */
+.projects{list-style:none;margin:0;padding:0;border-top:1px solid var(--ink)}
+.proj{position:relative;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:16px 40px;padding:28px 0;border-bottom:1px solid var(--line);isolation:isolate}
+.proj::before{content:"";position:absolute;inset:0 calc(-1 * max(16px, env(safe-area-inset-left,0px)));background:var(--klein);z-index:-1;
+  clip-path:inset(0 100% 0 0);transition:clip-path .55s cubic-bezier(.7,0,.2,1)}
+.proj:hover::before{clip-path:inset(0 0 0 0)}
+.proj:hover,.proj:hover .status{color:var(--on-klein)}
+.proj:hover .chip{border-color:var(--on-klein)}
+.proj:hover .status::before{background:var(--on-klein)}
+.proj h3{font-family:var(--f-display);font-weight:600;font-variation-settings:"wdth" 85;font-size:clamp(30px,4.4vw,60px);line-height:.95;letter-spacing:-.025em;margin:8px 0 0;text-wrap:balance}
+.status{display:inline-flex;align-items:center;gap:8px;color:var(--muted)}
+.status::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--muted)}
+.status.prod::before{background:#1FA866}
+.status.wip::before{background:#E0A21F}
+.proj .body{min-width:0;display:flex;flex-direction:column;gap:14px;padding-top:6px}
+.proj .body p{margin:0;max-width:58ch}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-family:var(--f-mono);font-size:11.5px;border:1px solid var(--line);border-radius:999px;padding:3px 10px;transition:border-color .3s}
+
+/* metric strip */
+.strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid var(--ink);margin-top:clamp(56px,8vw,96px)}
+.strip div{padding:22px 18px 22px 0;border-right:1px solid var(--line)}
+.strip div:last-child{border-right:0}
+.strip strong{display:block;font-family:var(--f-display);font-weight:700;font-variation-settings:"wdth" 78;font-size:clamp(56px,9vw,128px);line-height:.9;color:var(--klein);font-variant-numeric:tabular-nums}
+
+/* timeline */
+.tl{list-style:none;margin:0;padding:0;border-top:1px solid var(--ink)}
+.tl li{display:grid;grid-template-columns:200px minmax(0,1fr) minmax(0,1.2fr);gap:12px 32px;padding:24px 0;border-bottom:1px solid var(--line)}
+.tl .when{font-family:var(--f-mono);font-size:13px;color:var(--klein);padding-top:6px}
+.tl h4{font-family:var(--f-display);font-weight:600;font-variation-settings:"wdth" 88;font-size:clamp(22px,2.4vw,30px);line-height:1.05;margin:0}
+.tl p{margin:0;max-width:56ch}
+
+/* about */
+.about{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:40px}
+.about blockquote{margin:0;font-size:clamp(26px,3.4vw,46px);line-height:1.15;font-style:italic;text-wrap:balance}
+.about blockquote span{color:var(--klein)}
+.about .cols{display:grid;gap:18px;align-content:start}
+.about .cols p{margin:0;max-width:60ch}
+
+/* contact */
+.contact{background:var(--klein);color:var(--on-klein);margin-top:clamp(80px,12vw,160px);
+  margin-inline:calc(-1 * max(16px, env(safe-area-inset-left,0px)));padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:clamp(56px,9vw,120px) 28px}
+.contact h2{font-family:var(--f-display);font-weight:700;font-variation-settings:"wdth" 76;font-size:clamp(56px,13vw,200px);line-height:.85;letter-spacing:-.04em;margin:0 0 36px}
+.contact h2 i{font-family:var(--f-serif);font-weight:400;letter-spacing:-.02em}
+.mail{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+.mail code{font-family:var(--f-mono);font-size:clamp(16px,2.2vw,26px);user-select:all;word-break:break-all}
+.btn{font:inherit;font-family:var(--f-mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;background:var(--on-klein);color:var(--klein);
+  border:0;border-radius:999px;padding:10px 18px;cursor:pointer;transition:transform .2s}
+.btn:hover{transform:translateY(-2px)}
+.social{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));margin-top:clamp(40px,6vw,72px);border-top:1px solid color-mix(in srgb,var(--on-klein) 30%,transparent)}
+.social a{display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding:18px 18px 18px 0;text-decoration:none;
+  font-family:var(--f-display);font-weight:600;font-variation-settings:"wdth" 82;font-size:clamp(32px,5vw,72px);line-height:1;letter-spacing:-.025em;
+  border-bottom:1px solid color-mix(in srgb,var(--on-klein) 30%,transparent)}
+.social a + a{padding-left:18px;border-left:1px solid color-mix(in srgb,var(--on-klein) 30%,transparent)}
+.social i{font-style:normal;transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+.social a:hover i{transform:translate(6px,-6px)}
+.social a:hover span{font-style:italic;font-family:var(--f-serif);font-weight:400}
+@media (max-width:820px){.social{grid-template-columns:1fr}.social a + a{padding-left:0;border-left:0}}
+.foot{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-top:clamp(56px,8vw,100px);padding-top:18px;border-top:1px solid color-mix(in srgb,var(--on-klein) 30%,transparent)}
+
+/* scroll reveal: transform only, content visible at rest */
+@supports (animation-timeline: view()){
+  .rv{animation:rise linear both;animation-timeline:view();animation-range:entry 0% entry 40%}
+  @keyframes rise{from{transform:translateY(40px)}}
+}
+
+/* cursor */
+#cur{position:fixed;left:0;top:0;width:14px;height:14px;border-radius:50%;background:var(--klein);pointer-events:none;z-index:50;
+  mix-blend-mode:difference;transform:translate(-50%,-50%);transition:width .25s,height .25s,opacity .3s;opacity:0}
+@media (pointer:fine){ #cur.live{opacity:1} }
+#cur.big{width:64px;height:64px}
+
+@media (max-width:820px){
+  #space{width:100%;opacity:.55}
+  .legend{display:none}
+  .hero-foot,.about{grid-template-columns:1fr}
+  .facts{justify-self:start}
+  .proj{grid-template-columns:1fr}
+  .tl li{grid-template-columns:1fr}
+  .strip{grid-template-columns:1fr}
+  .strip div{border-right:0;border-bottom:1px solid var(--line)}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before{animation:none!important;transition:none!important}
+  #cur{display:none}
+}
+</style>
+</head>
+<body>
+<div id="cur" aria-hidden="true"></div>
+<div class="wrap">
+  <nav>
+    <span class="mono"><span class="dot"></span><span data-i18n="avail">Disponible · CDI ou mission</span></span>
+    <div class="links mono">
+      <a href="#travaux" data-i18n="n1">Travaux</a><a href="#parcours" data-i18n="n2">Parcours</a><a href="#contact" data-i18n="n3">Contact</a><a href="https://github.com/chloe-mp" target="_blank" rel="noopener">GitHub ↗</a>
+      <span class="lang" role="group" aria-label="Langue / Language">
+        <button type="button" id="lang-fr" data-lang="fr" aria-pressed="true">FR</button>
+        <button type="button" id="lang-en" data-lang="en" aria-pressed="false">EN</button>
+      </span>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div id="space" aria-hidden="true"></div>
+    <div class="eyebrow mono"><span data-i18n="role">Ingénieure IA · NLP, LLM &amp; agents</span><span>Paris / remote</span></div>
+    <div class="tokens" id="tokens" aria-label="Chloé Petridis">
+      <svg id="arcs" aria-hidden="true"></svg>
+    </div>
+    <p class="hint mono" data-i18n="hint">↳ Survole un token pour voir où va l'attention</p>
+    <div class="legend mono" aria-hidden="true"><span data-i18n="legend">Espace d'embeddings · 3D</span><span data-i18n="legend2" style="opacity:.7">Bouge la souris</span></div>
+    <div class="hero-foot">
+      <p class="lede" data-i18n="lede">Formée au NLP <em>symbolique</em> à la Sorbonne, je construis aujourd'hui des systèmes LLM qui tournent <em>en production</em>.</p>
+      <div class="facts mono">
+        <div><span data-i18n="f1k">Statut</span><span data-i18n="f1v">Freelance depuis fév. 2026</span></div>
+        <div><span data-i18n="f2k">Recherche</span><span data-i18n="f2v">3 publications peer-reviewed</span></div>
+        <div><span data-i18n="f3k">Spécialité</span><span>RAG · agents · fine-tuning</span></div>
+      </div>
+    </div>
+  </header>
+</div>
+
+<div class="marquee" aria-hidden="true"><div class="track">
+  <span>LangGraph</span><span>Qdrant</span><span>BGE-M3</span><span>BM25</span><span>RAGAS</span><span>FastAPI</span><span>GCP Cloud Run</span><span>LoRA / QLoRA</span><span>Function calling</span><span>Multi-agent systems</span>
+  <span>LangGraph</span><span>Qdrant</span><span>BGE-M3</span><span>BM25</span><span>RAGAS</span><span>FastAPI</span><span>GCP Cloud Run</span><span>LoRA / QLoRA</span><span>Function calling</span><span>Multi-agent systems</span>
+</div></div>
+
+<div class="wrap">
+  <section id="travaux">
+    <div class="sh rv"><h2 data-i18n="h_work">Travaux <i>choisis</i></h2><p class="mono">2025 — 2026</p></div>
+    <ul class="projects">
+      <li class="proj rv" data-hover>
+        <div><span class="status prod mono" data-i18n="p1s">En production · Naturfertil</span><h3 data-i18n="p1t">RAG réglementaire sur les engrais</h3></div>
+        <div class="body">
+          <p data-i18n="p1d">Un assistant qui répond aux questions de réglementation des engrais et digestats en citant ses sources. Retrieval hybride dense + lexical, reranking, et une évaluation continue pour mesurer la fidélité des réponses.</p>
+          <div class="chips"><span class="chip">BGE-M3</span><span class="chip">BM25</span><span class="chip">Reranking</span><span class="chip">RAGAS</span><span class="chip">LangGraph</span><span class="chip">Qdrant</span><span class="chip">FastAPI</span><span class="chip">Cloud Run</span></div>
+        </div>
+      </li>
+      <li class="proj rv" data-hover>
+        <div><span class="status wip mono" data-i18n="p2s">En cadrage · Naturfertil</span><h3 data-i18n="p2t">Agent commandes : mails &amp; voix</h3></div>
+        <div class="body">
+          <p data-i18n="p2d">Un agent qui lit les mails entrants et extrait chaque commande (fournisseur, client, produit, prix, quantité, livraison) dans un tableau. Le commercial peut aussi dicter une commande depuis son téléphone et reçoit la fiche structurée à valider.</p>
+          <div class="chips"><span class="chip" data-i18n="c_ext">Extraction structurée</span><span class="chip">Speech-to-text</span><span class="chip">WhatsApp / Telegram</span><span class="chip">Human-in-the-loop</span></div>
+        </div>
+      </li>
+      <li class="proj rv" data-hover>
+        <div><span class="status mono" data-i18n="perso">Projet perso</span><h3 data-i18n="p3t">Fine-tuning pour le function calling</h3></div>
+        <div class="body">
+          <p data-i18n="p3d">Spécialisation d'un LLM à l'appel d'outils sur le dataset xLAM : préparation des données, entraînement et évaluation du format des appels générés.</p>
+          <div class="chips"><span class="chip">xLAM</span><span class="chip">SFT</span><span class="chip">Tool use</span></div>
+        </div>
+      </li>
+      <li class="proj rv" data-hover>
+        <div><span class="status mono" data-i18n="perso">Projet perso</span><h3 data-i18n="p4t">Qwen3-4B en text-to-SQL</h3></div>
+        <div class="body">
+          <p data-i18n="p4d">Adaptation d'un petit modèle à la génération de requêtes SQL, en LoRA puis QLoRA, pour comparer coût mémoire et qualité sur du matériel modeste.</p>
+          <div class="chips"><span class="chip">Qwen3-4B</span><span class="chip">LoRA</span><span class="chip">QLoRA</span><span class="chip">PEFT</span></div>
+        </div>
+      </li>
+      <li class="proj rv" data-hover>
+        <div><span class="status mono" data-i18n="p5s">Recherche · EDF R&amp;D</span><h3 data-i18n="p5t">Systèmes multi-agents, équipe SEQUOIA</h3></div>
+        <div class="body">
+          <p data-i18n="p5d">Six mois de R&amp;D à Paris-Saclay sur les systèmes multi-agents, conclus par trois publications peer-reviewed en co-autrice.</p>
+          <div class="chips"><span class="chip" data-i18n="c_ma">Multi-agents</span><span class="chip" data-i18n="c_ra">Recherche appliquée</span><span class="chip">Publication</span></div>
+        </div>
+      </li>
+      <li class="proj rv" data-hover>
+        <div><span class="status mono" data-i18n="p6s">Communauté</span><h3>@weareaiengineers</h3></div>
+        <div class="body">
+          <p data-i18n="p6d">Un compte, et bientôt une plateforme de mentorat, pour aider les juniors et jeunes diplômés à entrer dans les métiers de l'IA.</p>
+          <div class="chips"><span class="chip">Community building</span><span class="chip" data-i18n="c_men">Mentorat</span></div>
+        </div>
+      </li>
+    </ul>
+
+    <div class="strip rv">
+      <div><strong>3</strong><span class="mono" data-i18n="s1">publications peer-reviewed</span></div>
+      <div><strong>1</strong><span class="mono" data-i18n="s2">RAG en production client</span></div>
+      <div><strong>6</strong><span class="mono" data-i18n="s3">mois de R&amp;D chez EDF</span></div>
+    </div>
+  </section>
+
+  <section id="parcours">
+    <div class="sh rv"><h2 data-i18n="h_path">Par<i>cours</i></h2><p class="mono" data-i18n="h_path_s">Du symbolique au neuronal</p></div>
+    <ol class="tl">
+      <li class="rv"><span class="when" data-i18n="t1w">fév. 2026 → auj.</span><h4 data-i18n="t1t">Ingénieure IA freelance</h4><p data-i18n="t1d">Conception et mise en production de systèmes LLM pour Naturfertil, négoce d'engrais et de digestats : RAG réglementaire, puis automatisation des commandes.</p></li>
+      <li class="rv"><span class="when" data-i18n="t2w">oct. 2025</span><h4 data-i18n="t2t">Master, Sorbonne Université</h4><p data-i18n="t2d">Spécialité NLP symbolique : grammaires formelles, sémantique, représentation des connaissances. Une base qui sert encore pour structurer et évaluer les sorties des LLM.</p></li>
+      <li class="rv"><span class="when" data-i18n="t3w">mars → août 2025</span><h4 data-i18n="t3t">Stage R&amp;D, EDF Paris-Saclay</h4><p data-i18n="t3d">Équipe SEQUOIA. Travaux sur les systèmes multi-agents, trois publications peer-reviewed.</p></li>
+      <li class="rv"><span class="when" data-i18n="t4w">en continu</span><h4 data-i18n="t4t">Formation</h4><p data-i18n="t4d">Machine Learning et Deep Learning Specializations (DeepLearning.AI), <i>Build a Large Language Model (From Scratch)</i> de Sebastian Raschka.</p></li>
+    </ol>
+  </section>
+
+  <section>
+    <div class="about rv">
+      <blockquote data-i18n="quote">« Un modèle qui marche en démo, c'est un début. <span>Un modèle qu'on mesure en prod</span>, c'est un produit. »</blockquote>
+      <div class="cols">
+        <p data-i18n="a1">Mon terrain, c'est l'endroit où le langage rencontre l'ingénierie : récupérer la bonne information, la faire raisonner, puis prouver que la réponse tient. J'aime autant écrire un pipeline d'évaluation que déployer un service sur le cloud.</p>
+        <p data-i18n="a2">Je m'intéresse de près au LLMOps, à la sécurité des systèmes d'IA et au red teaming. Je cherche une équipe où ces sujets comptent.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<footer class="contact" id="contact">
+  <div class="wrap">
+    <p class="mono">Contact</p>
+    <h2 data-i18n="h_contact">On en <i>parle</i> ?</h2>
+    <div class="mail">
+      <code id="email">chloe.petridis@gmail.com</code>
+      <button class="btn" id="copy" type="button" data-i18n="copy">Copier l'adresse</button>
+    </div>
+    <div class="social">
+      <a href="https://www.linkedin.com/in/chloe-petridis/" target="_blank" rel="noopener"><span>LinkedIn</span><i aria-hidden="true">↗</i></a>
+      <a href="https://github.com/chloe-mp" target="_blank" rel="noopener"><span>GitHub</span><i aria-hidden="true">↗</i></a>
+    </div>
+    <div class="foot mono"><span>© 2026 Chloé Petridis</span><span>Paris · FR / EN</span></div>
+  </div>
+</footer>
+
+<script>
+/* ---------- i18n: French lives in the HTML, English here ---------- */
+var EN={
+  avail:"Available · full-time or contract", n1:"Work", n2:"Background", n3:"Contact",
+  role:"AI engineer · NLP, LLMs &amp; agents", hint:"↳ Hover a token to see where attention goes",
+  legend:"Embedding space · 3D", legend2:"Move your mouse",
+  lede:"Trained in <em>symbolic</em> NLP at Sorbonne University, I now build LLM systems that run <em>in production</em>.",
+  f1k:"Status", f1v:"Freelance since Feb 2026", f2k:"Research", f2v:"3 peer-reviewed papers", f3k:"Focus",
+  h_work:"Selected <i>work</i>",
+  p1s:"In production · Naturfertil", p1t:"Regulatory RAG for fertilizers",
+  p1d:"An assistant that answers fertilizer and digestate regulation questions and cites its sources. Hybrid dense + lexical retrieval, reranking, and continuous evaluation to measure answer faithfulness.",
+  p2s:"Scoping · Naturfertil", p2t:"Order agent: email &amp; voice",
+  p2d:"An agent that reads incoming emails and extracts every order (supplier, client, product, price, quantity, delivery) into a table. The sales rep can also dictate an order from his phone and gets back a structured record to approve.",
+  c_ext:"Structured extraction", perso:"Personal project",
+  p3t:"Fine-tuning for function calling",
+  p3d:"Specialising an LLM for tool calling on the xLAM dataset: data preparation, training, and evaluation of the generated call format.",
+  p4t:"Qwen3-4B for text-to-SQL",
+  p4d:"Adapting a small model to SQL generation with LoRA, then QLoRA, to compare memory cost and quality on modest hardware.",
+  p5s:"Research · EDF R&amp;D", p5t:"Multi-agent systems, SEQUOIA team",
+  p5d:"Six months of R&amp;D at Paris-Saclay on multi-agent systems, resulting in three peer-reviewed papers as co-author.",
+  c_ma:"Multi-agent", c_ra:"Applied research",
+  p6s:"Community", p6d:"An account, and soon a mentoring platform, helping juniors and recent graduates break into AI careers.", c_men:"Mentoring",
+  s1:"peer-reviewed papers", s2:"RAG in client production", s3:"months of R&amp;D at EDF",
+  h_path:"Back<i>ground</i>", h_path_s:"From symbolic to neural",
+  t1w:"Feb 2026 → now", t1t:"Freelance AI engineer",
+  t1d:"Designing and shipping LLM systems for Naturfertil, a fertilizer and digestate trader: a regulatory RAG first, then order automation.",
+  t2w:"Oct 2025", t2t:"Master's degree, Sorbonne University",
+  t2d:"Symbolic NLP: formal grammars, semantics, knowledge representation. A foundation I still use to structure and evaluate LLM outputs.",
+  t3w:"Mar → Aug 2025", t3t:"R&amp;D internship, EDF Paris-Saclay",
+  t3d:"SEQUOIA team. Research on multi-agent systems, three peer-reviewed papers.",
+  t4w:"ongoing", t4t:"Learning",
+  t4d:"Machine Learning and Deep Learning Specializations (DeepLearning.AI), <i>Build a Large Language Model (From Scratch)</i> by Sebastian Raschka.",
+  quote:"“A model that works in a demo is a start. <span>A model you measure in production</span> is a product.”",
+  a1:"My ground is where language meets engineering: retrieve the right information, make it reason, then prove the answer holds. I enjoy writing an evaluation pipeline as much as deploying a service to the cloud.",
+  a2:"I care about LLMOps, AI security and red teaming. I'm looking for a team where those things matter.",
+  h_contact:"Let's <i>talk</i>", copy:"Copy address", copied:"Copied ✓", selected:"Selected, press ⌘C"
+};
+var FR={copied:"Copiée ✓", selected:"Sélectionnée, fais ⌘C"};
+document.querySelectorAll('[data-i18n]').forEach(function(el){ if(!(el.dataset.i18n in FR)) FR[el.dataset.i18n]=el.innerHTML; });
+var LANG='fr';
+function setLang(l){
+  LANG=l; var d=l==='en'?EN:FR;
+  document.querySelectorAll('[data-i18n]').forEach(function(el){ var k=el.dataset.i18n; if(d[k]!=null) el.innerHTML=d[k]; });
+  document.documentElement.lang=l;
+  document.querySelectorAll('.lang button').forEach(function(b){b.setAttribute('aria-pressed',b.dataset.lang===l)});
+  try{localStorage.setItem('cp-lang',l)}catch(e){}
+}
+document.querySelectorAll('.lang button').forEach(function(b){b.addEventListener('click',function(){setLang(b.dataset.lang)})});
+(function(){
+  var h=(location.hash||'').slice(1), saved=null;
+  try{saved=localStorage.getItem('cp-lang')}catch(e){}
+  var nav=(navigator.language||'fr').slice(0,2);
+  setLang(h==='en'||h==='fr' ? h : (saved || (nav==='fr'?'fr':'en')));
+})();
+
+/* ---------- tokenised name + attention arcs ---------- */
+(function(){
+  var toks=[["Chlo","40612"],["é","2634"],[" Pet","5733"],["rid","1907"],["is","285"]];
+  var box=document.getElementById('tokens'), svg=document.getElementById('arcs');
+  toks.forEach(function(t,i){
+    var s=document.createElement('span'); s.className='tok'; s.style.setProperty('--i',i);
+    s.innerHTML='<b>'+t[0]+'</b><span class="id">#'+t[1]+'</span>'; s.setAttribute('aria-hidden','true');
+    box.appendChild(s);
+  });
+  var els=[].slice.call(box.querySelectorAll('.tok'));
+  function w(a,b){var x=Math.sin((a+1)*12.9898+(b+1)*78.233)*43758.5453;return x-Math.floor(x);}
+  function draw(i){
+    var r=box.getBoundingClientRect(), src=els[i].getBoundingClientRect(), out='';
+    var sx=src.left+src.width/2-r.left, sy=src.top-r.top+6;
+    els.forEach(function(e,j){
+      e.classList.toggle('on',j===i);
+      if(j===i){e.classList.remove('near');return;}
+      var q=e.getBoundingClientRect(), tx=q.left+q.width/2-r.left, ty=q.top-r.top+6, wt=w(i,j);
+      e.classList.toggle('near',wt>.5);
+      var lift=Math.min(140,Math.abs(tx-sx)*.35+30);
+      out+='<path d="M'+sx+' '+sy+' Q'+((sx+tx)/2)+' '+(Math.min(sy,ty)-lift)+' '+tx+' '+ty+'" stroke-width="'+(1+wt*6).toFixed(1)+'" opacity="'+(.25+wt*.75).toFixed(2)+'"/>';
+    });
+    svg.innerHTML=out;
+  }
+  function clear(){svg.innerHTML='';els.forEach(function(e){e.classList.remove('on','near')});}
+  els.forEach(function(e,i){
+    e.addEventListener('mouseenter',function(){draw(i)});
+    e.addEventListener('mouseleave',clear);
+    e.addEventListener('touchstart',function(){draw(i)},{passive:true});
+  });
+})();
+
+/* ---------- Three.js: embedding cloud ---------- */
+(function(){
+  var host=document.getElementById('space');
+  if(!window.THREE||!host) return;
+  var reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+  var renderer;
+  try{ renderer=new THREE.WebGLRenderer({antialias:true,alpha:true}); }catch(e){ return; }
+  renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));
+  host.appendChild(renderer.domElement);
+  var scene=new THREE.Scene();
+  var cam=new THREE.PerspectiveCamera(45,1,.1,100); cam.position.set(0,0,9);
+
+  // seeded RNG so the cloud is the same on every visit
+  var seed=7; function rnd(){seed=(seed*16807)%2147483647;return (seed-1)/2147483646;}
+  function gauss(){var u=rnd()||1e-6,v=rnd();return Math.sqrt(-2*Math.log(u))*Math.cos(6.2832*v);}
+
+  var CL=6, PER=420, N=CL*PER, centers=[];
+  for(var c=0;c<CL;c++){
+    var th=c/CL*6.2832, ph=(rnd()-.5)*1.6;
+    centers.push(new THREE.Vector3(Math.cos(th)*2.6,Math.sin(ph)*1.8,Math.sin(th)*2.6));
+  }
+  var pos=new Float32Array(N*3), col=new Float32Array(N*3), hot=[];
+  for(var i=0;i<N;i++){
+    var k=Math.floor(i/PER), s=.55+(k%3)*.12, ce=centers[k];
+    pos[i*3]=ce.x+gauss()*s; pos[i*3+1]=ce.y+gauss()*s*.8; pos[i*3+2]=ce.z+gauss()*s;
+    if(i%PER<4) hot.push(i);
+  }
+  var geo=new THREE.BufferGeometry();
+  geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  geo.setAttribute('color',new THREE.BufferAttribute(col,3));
+
+  // round sprite
+  var cv=document.createElement('canvas'); cv.width=cv.height=64;
+  var g=cv.getContext('2d'); var grd=g.createRadialGradient(32,32,0,32,32,32);
+  grd.addColorStop(0,'rgba(255,255,255,1)'); grd.addColorStop(.45,'rgba(255,255,255,.9)'); grd.addColorStop(1,'rgba(255,255,255,0)');
+  g.fillStyle=grd; g.fillRect(0,0,64,64);
+  var mat=new THREE.PointsMaterial({size:.07,map:new THREE.CanvasTexture(cv),vertexColors:true,transparent:true,depthWrite:false});
+  var cloud=new THREE.Points(geo,mat);
+  var group=new THREE.Group(); group.add(cloud); scene.add(group);
+
+  // query point linked to its nearest neighbours (a retrieval, visually)
+  var lineGeo=new THREE.BufferGeometry(), lineMat=new THREE.LineBasicMaterial({transparent:true,opacity:.55});
+  var lines=new THREE.LineSegments(lineGeo,lineMat); group.add(lines);
+  var qMat=new THREE.MeshBasicMaterial(); var q=new THREE.Mesh(new THREE.SphereGeometry(.09,20,20),qMat); group.add(q);
+  var qi=0;
+  function retrieve(){
+    var t=centers[qi%CL]; qi++;
+    var qp=new THREE.Vector3(t.x+(rnd()-.5),t.y+(rnd()-.5)*.6,t.z+(rnd()-.5)); q.position.copy(qp);
+    var d=[]; for(var i=0;i<N;i++){var dx=pos[i*3]-qp.x,dy=pos[i*3+1]-qp.y,dz=pos[i*3+2]-qp.z;d.push([dx*dx+dy*dy+dz*dz,i]);}
+    d.sort(function(a,b){return a[0]-b[0]});
+    var lp=new Float32Array(8*6);
+    for(var j=0;j<8;j++){var id=d[j][1];lp.set([qp.x,qp.y,qp.z,pos[id*3],pos[id*3+1],pos[id*3+2]],j*6);}
+    lineGeo.setAttribute('position',new THREE.BufferAttribute(lp,3)); lineGeo.computeBoundingSphere();
+  }
+  retrieve();
+
+  function cssColor(name){
+    var v=getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    var c=new THREE.Color(); try{c.setStyle(v.startsWith('rgba')?v.replace(/rgba\(([^,]+),([^,]+),([^,]+),[^)]+\)/,'rgb($1,$2,$3)'):v);}catch(e){} return c;
+  }
+  function paint(){
+    var ink=cssColor('--ink'), klein=cssColor('--klein'), paper=cssColor('--paper');
+    var mid=ink.clone().lerp(paper,.45);
+    for(var i=0;i<N;i++){
+      var k=Math.floor(i/PER), c=(k===0||k===3)?ink.clone().lerp(klein,.75):mid.clone().lerp(ink,(k%2)*.3);
+      if(hot.indexOf(i)>-1) c=klein;
+      col[i*3]=c.r; col[i*3+1]=c.g; col[i*3+2]=c.b;
+    }
+    geo.attributes.color.needsUpdate=true;
+    lineMat.color=klein; qMat.color=klein;
+  }
+  paint();
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change',paint);
+  new MutationObserver(paint).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+
+  function size(){
+    var w=host.clientWidth,h=host.clientHeight; if(!w||!h) return;
+    renderer.setSize(w,h,false); cam.aspect=w/h; cam.updateProjectionMatrix();
+  }
+  size(); addEventListener('resize',size);
+
+  var mx=0,my=0,tx=0,ty=0;
+  addEventListener('pointermove',function(e){mx=e.clientX/innerWidth-.5;my=e.clientY/innerHeight-.5;});
+  var visible=true;
+  new IntersectionObserver(function(en){visible=en[0].isIntersecting}).observe(host);
+  var clock=new THREE.Clock(), last=0;
+  function frame(){
+    requestAnimationFrame(frame);
+    if(!visible) return;
+    var t=clock.getElapsedTime();
+    tx+=(mx-tx)*.04; ty+=(my-ty)*.04;
+    group.rotation.y=t*.06+tx*.9;
+    group.rotation.x=-.25+ty*.5;
+    cam.position.z=9-Math.min(scrollY/400,1.5);
+    if(t-last>3.2){last=t;retrieve();}
+    q.scale.setScalar(1+Math.sin(t*4)*.25);
+    renderer.render(scene,cam);
+  }
+  if(reduce){ group.rotation.set(-.25,.6,0); renderer.render(scene,cam); }
+  else frame();
+})();
+
+/* ---------- cursor + copy ---------- */
+(function(){
+  var cur=document.getElementById('cur');
+  if(matchMedia('(pointer:fine)').matches && !matchMedia('(prefers-reduced-motion:reduce)').matches){
+    var x=0,y=0,cx=0,cy=0;
+    addEventListener('mousemove',function(ev){x=ev.clientX;y=ev.clientY;cur.classList.add('live')});
+    (function loop(){cx+=(x-cx)*.2;cy+=(y-cy)*.2;cur.style.left=cx+'px';cur.style.top=cy+'px';requestAnimationFrame(loop)})();
+    document.querySelectorAll('a,button,[data-hover],.tok').forEach(function(el){
+      el.addEventListener('mouseenter',function(){cur.classList.add('big')});
+      el.addEventListener('mouseleave',function(){cur.classList.remove('big')});
+    });
+  }
+  var btn=document.getElementById('copy');
+  function d(){return LANG==='en'?EN:FR;}
+  function reset(){setTimeout(function(){btn.innerHTML=d().copy},1800)}
+  btn.addEventListener('click',function(){
+    var t=document.getElementById('email').textContent;
+    function sel(){var r=document.createRange();r.selectNodeContents(document.getElementById('email'));var s=getSelection();s.removeAllRanges();s.addRange(r);btn.textContent=d().selected;reset();}
+    try{navigator.clipboard.writeText(t).then(function(){btn.textContent=d().copied;reset()},sel)}catch(e){sel()}
+  });
+})();
+</script>
+</body>
+</html>
